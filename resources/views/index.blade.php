@@ -7,7 +7,7 @@
     <title>index</title>
 </head>
 <body>
-    <a href="http://localhost/registered">俺要注册</a></br></br>
-    <a href="http://localhost/login">俺要登录</a>
+    <a href="/registered">俺要注册</a></br></br>
+    <a href="/login">俺要登录</a>
 </body>
 </html>

@@ -5,15 +5,26 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use DB;
+use Session;
 
 class IndexController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        if($request->session()->exists('name'))
+        {
+            $name = session('name');
+            return view('afterLogin',compact('name'));
+        }
         return view('index');
     }
     public function registered(Request $request)
     {
+        if($request->session()->exists('name'))
+        {
+            $name = session('name');
+            return view('afterLogin',compact('name'));
+        }
         if($request -> method() == 'POST')
         {
             //自动验证
@@ -25,7 +36,7 @@ class IndexController extends Controller
             //数据库操作
             $db = DB::table('user');
             $data = $request -> all();
-            $exist = $db -> where('name',$data['name']);
+            $exist = $db -> where('name',$data['name']) -> value('id');
             if($exist)
             {
                 echo '用户已存在，请重新输入：';
@@ -39,7 +50,6 @@ class IndexController extends Controller
                 ]);
                 return redirect('/login');
             }
-          
         }
         else
         {
@@ -49,9 +59,9 @@ class IndexController extends Controller
     }
     public function login(Request $request)
     {
-        if($request -> cookie('name'))
+        if($request->session()->exists('name'))
         {
-            $name = $request -> cookie('name');
+            $name = session('name');
             return view('afterLogin',compact('name'));
         }
         if($request -> method() == 'POST')
@@ -59,7 +69,7 @@ class IndexController extends Controller
             $request -> validate([
                 'name' => 'required|max:10',
                 'password' => 'required|max:10',
-         //       'captcha' => 'required|captcha',
+                'captcha' => 'required|captcha',
             ]);
             $data = $request -> all();
             //数据库查询
@@ -69,14 +79,13 @@ class IndexController extends Controller
             
             if($pwd == $data['password'])
             {
-                return response(view('afterLogin',compact('name')), 200)
-                                ->cookie('name',$name);
+                session(['name' => $name]);
+                return view('afterLogin',compact('name'));
             }
             else
-            {
-                return response('登录失败！',200)
-                                ->cookie('name',null);
-
+            {              
+                echo '登录失败！';
+                $value = $request->session()->pull('name', 'default');
             }
         }
         else
@@ -86,13 +95,11 @@ class IndexController extends Controller
     }
     public function logout(Request $request)
     {
-        $cookie = $request -> cookie('name');
-        if($cookie)
+        if($request->session()->exists('name'))
         {
-            return response(redirect('/login'), 200)
-                            ->cookie('name', null);
-         //   return redirect('/login');
+            $name = session('name');
+            $value = $request->session()->pull('name', 'default');
+            return redirect('/login');
         }
-       // echo $cookie;
     }
 }
